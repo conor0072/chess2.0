@@ -4,6 +4,7 @@
 
 import pygame
 import random
+import os
 from stockfish import Stockfish
 
 # Initialize Pygame
@@ -85,9 +86,42 @@ class StockfishAI:
         "hard": {"depth": 15, "skill": 20},
     }
 
-    def __init__(self, path="stockfish/stockfish-macos-x86-64-avx2", level="easy"):
+    def __init__(self, path=None, level="easy"):
+        """Initialize Stockfish.
+
+        If ``path`` is ``None`` the constructor searches the ``stockfish/``
+        directory for a suitable engine. On Windows this file should be named
+        ``stockfish.exe``. If you use an absolute path on Windows, prefix it
+        with ``r`` or use forward slashes to avoid escape errors.
+        """
+
         params = self.LEVELS.get(level, self.LEVELS["easy"])
-        self.engine = Stockfish(path=path, depth=params["depth"], parameters={"Skill Level": params["skill"]})
+
+        if path is None:
+            base = os.path.join(os.path.dirname(__file__), "stockfish")
+            candidates = []
+            if os.name == "nt":
+                candidates.extend(["stockfish.exe", "stockfish-windows-x86-64-avx2.exe"])
+            else:
+                candidates.append("stockfish")
+            candidates.append("stockfish-macos-x86-64-avx2")
+
+            for name in candidates:
+                candidate = os.path.join(base, name)
+                if os.path.exists(candidate):
+                    path = candidate
+                    break
+
+        if not path or not os.path.exists(path):
+            raise FileNotFoundError(
+                "Stockfish engine not found. Place the executable in the 'stockfish/' folder"
+            )
+
+        self.engine = Stockfish(
+            path=path,
+            depth=params["depth"],
+            parameters={"Skill Level": params["skill"]},
+        )
 
     def best_move(self, fen):
         try:

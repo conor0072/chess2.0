@@ -14,12 +14,14 @@
    pip install pygame stockfish
    ```
 
-3. Place your **Stockfish binary** inside a folder named `stockfish/`.  
-   Update the path in your code if needed:
+3. Place your **Stockfish binary** inside a folder named `stockfish/`.
+   On Windows rename the engine to `stockfish.exe`. On macOS or Linux you can
+   use the provided binary or rename yours to `stockfish`.
 
-   ```python
-   path = "stockfish/stockfish-macos-x86-64-avx2"
-   ```
+   **No code changes are required.** The program automatically looks for the
+   correct file. If you specify an absolute path on Windows, use a raw string
+   (e.g. `r"C:\\Path\\stockfish.exe"`) or forward slashes to avoid escape
+   issues.
 
 4. Run the script:
 
