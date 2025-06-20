@@ -1,23 +1,28 @@
 # Conor Kelly
-# June, 13, 2025 
+# June, 13, 2025
 # Please read the READ.ME
+
 
 import pygame
 import random
 from stockfish import Stockfish
 
+
 # Initialize Pygame
 pygame.init()
+
 
 # Set up display
 width, height = 600, 600
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Chess Game")
 
+
 # Define colors
 light_square = (240, 217, 181)
 dark_square = (181, 136, 99)
 popup_bg = (255, 255, 255)
+
 
 # Load images
 pieces = {
@@ -35,6 +40,7 @@ pieces = {
     "w_king": pygame.image.load("assets/w_king.png"),
 }
 
+
 # Initialize board template
 initial_board = [
     ["b_rook", "b_knight", "b_bishop", "b_queen", "b_king", "b_bishop", "b_knight", "b_rook"],
@@ -47,7 +53,9 @@ initial_board = [
     ["w_rook", "w_knight", "w_bishop", "w_queen", "w_king", "w_bishop", "w_knight", "w_rook"]
 ]
 
+
 starting_board = [row[:] for row in initial_board]
+
 
 selected_piece = None
 selected_pos = None
@@ -59,12 +67,16 @@ last_move = None
 font = pygame.font.Font(None, 48)
 
 
+
+
 class Button:
     """Simple UI button."""
+
 
     def __init__(self, rect, text):
         self.rect = pygame.Rect(rect)
         self.text = text
+
 
     def draw(self, surface):
         pygame.draw.rect(surface, (70, 70, 70), self.rect, border_radius=8)
@@ -72,12 +84,16 @@ class Button:
         label = font.render(self.text, True, (255, 255, 255))
         surface.blit(label, label.get_rect(center=self.rect.center))
 
+
     def is_clicked(self, pos):
         return self.rect.collidepoint(pos)
 
 
+
+
 class StockfishAI:
     """Wrap Stockfish engine with difficulty presets."""
+
 
     LEVELS = {
         "easy": {"depth": 4, "skill": 5},
@@ -85,9 +101,11 @@ class StockfishAI:
         "hard": {"depth": 15, "skill": 20},
     }
 
-    def __init__(self, path="stockfish/stockfish-macos-x86-64-avx2", level="easy"):
+
+    def __init__(self, path="stockfish-windows-x86-64-avx2.exe", level="easy"):
         params = self.LEVELS.get(level, self.LEVELS["easy"])
         self.engine = Stockfish(path=path, depth=params["depth"], parameters={"Skill Level": params["skill"]})
+
 
     def best_move(self, fen):
         try:
@@ -95,6 +113,7 @@ class StockfishAI:
             return self.engine.get_best_move()
         except Exception:
             return None
+
 
 # Castling state flags
 castle_rights = {
@@ -104,12 +123,15 @@ castle_rights = {
     'b_queenside': True,
 }
 
+
 def is_path_clear(board, squares):
     """Return True if all squares are empty."""
     for r, c in squares:
         if board[r][c] != "":
             return False
     return True
+
+
 
 
 def is_castle_path_safe(board, color, squares):
@@ -130,23 +152,30 @@ def is_castle_path_safe(board, color, squares):
     return True
 
 
+
+
 def is_valid_move(board, piece, start_pos, end_pos, check_castle=True):
     sr, sc = start_pos
     er, ec = end_pos
     dr, dc = er - sr, ec - sc
 
+
     if sr == er and sc == ec:
         return False
+
 
     target = board[er][ec]
     if target and target[0] == piece[0]:
         return False
 
+
     kind = piece[2:]
+
 
     if kind == "pawn":
         direction = -1 if piece.startswith("w") else 1
         start_row = 6 if piece.startswith("w") else 1
+
 
         if sc == ec:
             if dr == direction and board[er][ec] == "":
@@ -155,6 +184,7 @@ def is_valid_move(board, piece, start_pos, end_pos, check_castle=True):
                 return True
         elif abs(sc - ec) == 1 and dr == direction and board[er][ec] != "":
             return True
+
 
     elif kind == "rook":
         if sr == er or sc == ec:
@@ -170,8 +200,10 @@ def is_valid_move(board, piece, start_pos, end_pos, check_castle=True):
                         return False
             return True
 
+
     elif kind == "knight":
         return (abs(dr), abs(dc)) in [(2, 1), (1, 2)]
+
 
     elif kind == "bishop":
         if abs(dr) == abs(dc):
@@ -182,11 +214,13 @@ def is_valid_move(board, piece, start_pos, end_pos, check_castle=True):
                     return False
             return True
 
+
     elif kind == "queen":
         return (
             is_valid_move(board, piece[0] + "_rook", start_pos, end_pos, check_castle)
             or is_valid_move(board, piece[0] + "_bishop", start_pos, end_pos, check_castle)
         )
+
 
     elif kind == "king":
         if max(abs(dr), abs(dc)) == 1:
@@ -211,7 +245,9 @@ def is_valid_move(board, piece, start_pos, end_pos, check_castle=True):
                     path = [(0,3), (0,2)]
                     return is_path_clear(board, [(0,1), (0,2), (0,3)]) and is_castle_path_safe(board, color, path)
 
+
     return False
+
 
 def is_king_in_check(board, color):
     king_pos = None
@@ -222,6 +258,7 @@ def is_king_in_check(board, color):
     if not king_pos:
         return True
 
+
     opponent_color = 'b' if color == 'w' else 'w'
     for row in range(8):
         for col in range(8):
@@ -231,12 +268,15 @@ def is_king_in_check(board, color):
                     return True
     return False
 
+
 def find_king(board, color):
     for r in range(8):
         for c in range(8):
             if board[r][c] == f"{color}_king":
                 return (r, c)
     return None
+
+
 
 
 def board_to_fen(board, turn, rights):
@@ -286,6 +326,8 @@ def board_to_fen(board, turn, rights):
     return fen
 
 
+
+
 def parse_uci_move(move):
     sr = 8 - int(move[1])
     sc = ord(move[0]) - 97
@@ -293,6 +335,7 @@ def parse_uci_move(move):
     ec = ord(move[2]) - 97
     promotion = move[4] if len(move) == 5 else None
     return (sr, sc), (er, ec), promotion
+
 
 def generate_legal_moves(board, piece, start_pos):
     moves = []
@@ -323,6 +366,7 @@ def generate_legal_moves(board, piece, start_pos):
                     board[rook_move[1][0]][rook_move[1][1]] = ""
     return moves
 
+
 def is_checkmate(board, color):
     if not is_king_in_check(board, color):
         return False
@@ -334,12 +378,14 @@ def is_checkmate(board, color):
                     return False
     return True
 
+
 def promote_pawn(piece):
     color = piece[0]
     selecting = True
     options = ["queen", "rook", "bishop", "knight"]
     buttons = []
     square_size = width // 8
+
 
     draw_board(screen)
     popup_width = len(options) * (square_size + 20) + 20
@@ -348,6 +394,7 @@ def promote_pawn(piece):
     pygame.draw.rect(screen, popup_bg, popup_rect, border_radius=10)
     pygame.draw.rect(screen, (0, 0, 0), popup_rect, 2, border_radius=10)
 
+
     for i, name in enumerate(options):
         rect = pygame.Rect(popup_rect.x + 20 + i * (square_size + 20), popup_rect.y + 20, square_size, square_size)
         img = pygame.transform.smoothscale(pieces[color + "_" + name], (square_size, square_size))
@@ -355,7 +402,9 @@ def promote_pawn(piece):
         screen.blit(img, rect.topleft)
         buttons.append((rect, color + "_" + name))
 
+
     pygame.display.flip()
+
 
     while selecting:
         for event in pygame.event.get():
@@ -370,6 +419,7 @@ def promote_pawn(piece):
                         return result
     return color + "_queen"
 
+
 def draw_board(surface, board=None):
     if board is None:
         board = starting_board
@@ -380,15 +430,18 @@ def draw_board(surface, board=None):
             rect = pygame.Rect(col * square_size, row * square_size, square_size, square_size)
             pygame.draw.rect(surface, color, rect)
 
+
             if last_move and ((row, col) == last_move[0] or (row, col) == last_move[1]):
                 overlay = pygame.Surface((square_size, square_size), pygame.SRCALPHA)
                 overlay.fill((255, 255, 0, 80))
                 surface.blit(overlay, rect.topleft)
 
+
             if selected_piece and selected_pos == (row, col):
                 overlay = pygame.Surface((square_size, square_size), pygame.SRCALPHA)
                 overlay.fill((255, 255, 0, 120))
                 surface.blit(overlay, rect.topleft)
+
 
             if (row, col) in legal_moves:
                 overlay = pygame.Surface((square_size, square_size), pygame.SRCALPHA)
@@ -396,10 +449,13 @@ def draw_board(surface, board=None):
                 surface.blit(overlay, rect.topleft)
 
 
+
+
             piece = board[row][col]
             if piece and (not dragging or (row, col) != selected_pos or board is not starting_board):
                 image = pygame.transform.smoothscale(pieces[piece], (square_size, square_size))
                 surface.blit(image, (col * square_size, row * square_size))
+
 
     # Highlight kings in check
     for color in ('w', 'b'):
@@ -410,6 +466,7 @@ def draw_board(surface, board=None):
                 overlay = pygame.Surface((square_size, square_size), pygame.SRCALPHA)
                 overlay.fill((255, 0, 0, 100))
                 surface.blit(overlay, rect.topleft)
+
 
 def update_castle_rights(piece, start_pos):
     """Update castle rights when a king or rook moves."""
@@ -432,6 +489,7 @@ def update_castle_rights(piece, start_pos):
         elif sr == 0 and sc == 7:
             castle_rights['b_kingside'] = False
 
+
 def animate_move(piece, start_pos, end_pos):
     """Animate a piece moving from start_pos to end_pos."""
     sr, sc = start_pos
@@ -448,6 +506,8 @@ def animate_move(piece, start_pos, end_pos):
         screen.blit(img, (x, y))
         pygame.display.flip()
         pygame.time.delay(30)
+
+
 
 
 def reset_game():
@@ -469,12 +529,16 @@ def reset_game():
     }
 
 
+
+
 def draw_button(rect, text):
     """Deprecated helper for drawing buttons."""
     pygame.draw.rect(screen, (70, 70, 70), rect, border_radius=8)
     pygame.draw.rect(screen, (255, 255, 255), rect, 2, border_radius=8)
     label = font.render(text, True, (255, 255, 255))
     screen.blit(label, label.get_rect(center=rect.center))
+
+
 
 
 def show_home_screen():
@@ -518,6 +582,8 @@ def show_home_screen():
                             exit()
 
 
+
+
 def show_win_screen(winner):
     board_img = screen.copy()
     overlay = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -540,6 +606,8 @@ def show_win_screen(winner):
                 waiting = False
         pygame.time.delay(100)
     reset_game()
+
+
 
 
 def confirm_exit():
@@ -574,6 +642,8 @@ def confirm_exit():
         pygame.time.delay(100)
 
 
+
+
 def ai_make_move(color):
     global turn, last_move
     moves = []
@@ -605,6 +675,8 @@ def ai_make_move(color):
     turn = 'b' if turn == 'w' else 'w'
 
 
+
+
 def game_loop(vs_ai=False, difficulty="easy"):
     reset_game()
     ai_color = 'b' if vs_ai else None
@@ -615,10 +687,12 @@ def game_loop(vs_ai=False, difficulty="easy"):
         screen.fill((0, 0, 0))
         draw_board(screen)
 
+
         square_size = width // 8
         mouse_x, mouse_y = pygame.mouse.get_pos()
         mouse_col = mouse_x // square_size
         mouse_row = mouse_y // square_size
+
 
         if vs_ai and turn == ai_color and not game_over:
             fen = board_to_fen(starting_board, turn, castle_rights)
@@ -653,14 +727,17 @@ def game_loop(vs_ai=False, difficulty="easy"):
                 running = False
             continue
 
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
 
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 if confirm_exit():
                     reset_game()
                     running = False
+
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if selected_piece:
@@ -706,9 +783,12 @@ def game_loop(vs_ai=False, difficulty="easy"):
                     legal_moves = generate_legal_moves(starting_board, selected_piece, selected_pos)
 
 
+
+
             elif event.type == pygame.MOUSEMOTION:
                 if pygame.mouse.get_pressed()[0] and selected_piece:
                     dragging = True
+
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if dragging and selected_piece:
@@ -751,11 +831,15 @@ def game_loop(vs_ai=False, difficulty="easy"):
                     dragging = False
                     legal_moves = []
 
+
         if dragging and selected_piece:
             drag_image = pygame.transform.smoothscale(pieces[selected_piece], (square_size, square_size))
             screen.blit(drag_image, (mouse_x - square_size // 2, mouse_y - square_size // 2))
 
+
         pygame.display.flip()
+
+
 
 
 def main():
@@ -769,6 +853,8 @@ def main():
         else:
             break
     pygame.quit()
+
+
 
 
 if __name__ == "__main__":
