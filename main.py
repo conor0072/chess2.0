@@ -1,6 +1,6 @@
 # Conor Kelly
 # June, 13, 2025 
-# Please read the READ.ME
+# Please read the README.md
 
 import pygame
 import random
