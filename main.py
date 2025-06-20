@@ -1,6 +1,6 @@
 # Conor Kelly
-# June, 13, 2025
-# Please read the READ.ME
+# June, 13, 2025 
+# Please read the README.md
 
 
 import pygame
@@ -102,7 +102,7 @@ class StockfishAI:
     }
 
 
-    def __init__(self, path="stockfish-windows-x86-64-avx2.exe", level="easy"):
+    def __init__(self, path="stockfish/stockfish-windows-x86-64-avx2.exe", level="easy"):
         params = self.LEVELS.get(level, self.LEVELS["easy"])
         self.engine = Stockfish(path=path, depth=params["depth"], parameters={"Skill Level": params["skill"]})
 
@@ -853,9 +853,3 @@ def main():
         else:
             break
     pygame.quit()
-
-
-
-
-if __name__ == "__main__":
-    main()
