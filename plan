@@ -1,0 +1,25 @@
+Problem-Solving Plan
+
+Step 1: Setup and Planning
+Decide the key features: legal moves, dragging animation, AI difficulty
+Plan for state handling: board array, turn tracking, castling flags
+Design the UI with home screen, in-game board, and game-over display
+
+Step 2: Base Game Engine
+Use a nested list to represent the board
+Implement a piece movement system with full rule validation
+Create rendering logic for board and pieces with smooth animations
+
+Step 3: User Interface
+Add interactive buttons for selecting game mode
+Highlight last move and show legal moves
+
+Step 4: AI Integration
+Connect Stockfish engine via python-stockfish wrapper
+Use FEN string conversion for AI communication
+Allow different difficulty levels (Easy/Medium/Hard)
+
+Step 5: Advanced Chess Mechanics
+Implement castling rules with checks for safe paths and rook movement
+Add pawn promotion popup for piece selection
+Highlight kings in check
